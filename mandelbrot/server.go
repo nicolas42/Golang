@@ -1,8 +1,31 @@
+// === Usage ===
+// go run server.go
+// localhost:8080
+// image of mandelbrot should appear
+
+/*
+=== Notes ===
+
+	var buffer bytes.Buffer
+	png.Encode(&buffer, img)
+	w.Header().Set("Content-Type", "image/jpeg") // <-- set the content-type header
+	io.Copy(w, &buffer)
+
+
+var buffer bytes.Buffer
+these little guys are good for when you want a file but don't want a file
+
+to send an image through a responsewriter
+set the content type to "image/jpeg"
+then write to it with io.Copy
+
+
+*/
+
 package main
 
 import (
 	"bytes"
-	"fmt"
 	"image"
 	"image/color"
 	"image/png"
@@ -11,16 +34,12 @@ import (
 	"net/http"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
-}
-
 func main() {
-	http.HandleFunc("/", webHandler)
+	http.HandleFunc("/", mandelbrotHandler)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-func webHandler(w http.ResponseWriter, r *http.Request) {
+func mandelbrotHandler(w http.ResponseWriter, r *http.Request) {
 	// https://stackoverflow.com/questions/26744814/serve-image-in-go-that-was-just-created
 
 	img := drawMandelbrot(1000, 1000)

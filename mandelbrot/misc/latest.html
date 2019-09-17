@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="reset.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Mandelbro</title>
+</head>
+<body>
+</body>
+<script>
+
+function currentURL(str){
+	 
+	 var url = document.location.href
+	 if (url.indexOf("?") !== -1){
+	 	url = url.slice(0, url.indexOf("?"))
+	 }
+	 return url+"?x="+xcenter+"&y="+ycenter+"&zoom="+zoom+"&maxIterations="+maxIterations;
+} 
+
+
+function getURLParameter(name){
+	return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&]+)').exec(location.search) || [null, ''])[1].replace(/\+/g, '%20')) || null;
+}
+
+function elt(type) {
+	// Create HTML element tree modified from eloquent javascript
+	
+	var node = document.createElement(type);
+	var i;
+	var child;
+	var attr;
+	for (i = 1; i < arguments.length; i+=1) {
+	  child = arguments[i];
+	  if (typeof child === "string"){
+
+	  	if ( child.includes("=") ) {
+			attr = child.split("=");
+	      node.setAttribute(attr[0],attr[1]);
+	    } else {
+	    	child = document.createTextNode(child);
+	      	node.appendChild(child);
+	    }
+
+	  } else {
+	  	node.appendChild(child);
+		}
+	}
+	return node;
+}
+
+
+var width;
+var height;
+var xcenter;
+var ycenter;
+var zoom;
+var maxIterations;
+
+function makeMandelbrot(arg){ // Takes object with fields width,height,x,y,zoom,maxIterations){
+	"use strict";
+
+	// Defaults
+	width = 800;
+	height = 800;
+	xcenter = 0;
+	ycenter = 0;
+	zoom = 1;
+	maxIterations = 255;
+	
+	// Get Parameters From Function Argument
+	if(arg !== undefined){
+		if(arg.width !== undefined) {width = arg.width;}
+		if(arg.height !== undefined) {height = arg.height;}
+		if(arg.x !== undefined) {xcenter = arg.x;}
+		if(arg.y !== undefined) {ycenter = arg.y;}
+		if(arg.zoom !== undefined) {zoom = arg.zoom;}
+		if(arg.maxIterations !== undefined) {maxIterations = arg.maxIterations;}
+	}
+	
+	// Get Parameters From URL
+	if(getURLParameter('width') !== null) { 
+		width = parseInt(getURLParameter('width')) 
+	}
+	if(getURLParameter('height') !== null) { 
+		height = parseInt(getURLParameter('height'))
+	}
+	if(getURLParameter('x') !== null) { 
+		xcenter = parseFloat(getURLParameter('x')) 
+	}
+	if(getURLParameter('y') !== null) { 
+		ycenter = parseFloat(getURLParameter('y'))
+	}
+	if(getURLParameter('zoom') !== null) { 
+		zoom = parseInt(getURLParameter('zoom'))
+	}
+	if(getURLParameter('maxIterations') !== null) { 
+		maxIterations = parseInt(getURLParameter('maxIterations'))
+	}
+		
+	// Calculate Initial Values
+	var aspect = width / height;
+	var yspan = 2 / zoom;
+	var xspan = 2 * aspect / zoom;
+	var xmin = xcenter - xspan;
+    var xmax = xcenter + xspan;
+    var ymin = ycenter - yspan;
+    var ymax = ycenter + yspan;
+
+	// Scalers convert between pixel lengths and math lengths
+	var xscale = width / (xmax - xmin); 
+	var yscale = height / (ymax - ymin);
+
+	// Make HTML Nodes
+	var node = elt("div", "id=mandelbro",
+		elt("canvas", "id=canvas"),
+		elt("button", "id=resetButton", "style=margin-right: 10px", "Reset"),
+		elt("label","Max Iterations"),
+		elt("input", "id=inputField"),
+		elt("button","id=drawButton", "Draw"),
+		elt("br"),
+		elt("p", "id=infoPara"),
+		elt("h1", "Mandelbro"),
+		elt("p", "Left click to zoom in, right click to zoom out. Increase max iterations for more detail.  Save your place with the URL. "),
+		elt("p", "If you zoom in to some black areas you might want to increase the maxIterations value to get a more interesting image.  It will slow down the rendering though.  This program uses floating point math so if you zoom in far enough you will eventually see a low-res pixely image. This could be fixed by using big numbers with a int64 exponent.")
+	);	
+	//		elt("p", "id=consolePara"), // URL
+	
+	// Get Javascript Pointers to HTML Nodes
+	var infoPara = node.querySelector("#infoPara");
+	var resetButton = node.querySelector("#resetButton");
+	var drawButton = node.querySelector("#drawButton");
+	var inputField = node.querySelector("#inputField");
+	//	var consolePara = node.querySelector("#consolePara"); // URL
+	
+	// Set the canvas size and get the actual bytes data from it
+	var canvas = node.querySelector("#canvas");
+	canvas.width = width;
+	canvas.height = height;
+	var ctx = canvas.getContext("2d");
+	var imgData = ctx.getImageData(0, 0, width, height); 	// An imageData object consists of: {width, height, data}
+	var data = imgData.data;
+
+	function hslToRgb(h, s, l){
+	    var r;
+		var g;
+		var b;
+        function hue2rgb(p, q, t){
+            if(t < 0) {
+				t += 1;
+			}
+            if(t > 1) {
+				t -= 1;
+			}
+            if(t < 1/6) {
+				return p + (q - p) * 6 * t;
+			}
+            if(t < 1/2) {
+				return q;
+			}
+            if(t < 2/3) {
+				return p + (q - p) * (2/3 - t) * 6;
+			}
+            return p;
+        }
+
+        var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        var p = 2 * l - q;
+		
+	    if(s === 0){
+	        r = 1;
+			g = 1;
+			b = 1; // achromatic
+	    }else{
+
+	        r = hue2rgb(p, q, h + 1/3);
+	        g = hue2rgb(p, q, h);
+	        b = hue2rgb(p, q, h - 1/3);
+	    }
+
+	    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+	}
+	
+	function drawMandelbrot(){
+
+		var black = [0, 0, 0, 255];
+
+		var x;
+		var y;
+		// Zn+1 = Zn^2 + c
+		// Z0 = 0
+		// c is pixel value
+		var zx;
+		var zxtemp;
+		var zy;
+		var cx;
+		var cy;
+		
+		var rgb;
+		var i;
+		var inputValue;
+
+		var inSet; // true,false
+		var pos;
+		var stride = 4; // 4 bytes per pixel
+	    
+		maxIterations = 255 + (20*Math.log2(zoom)); 	    // maxIterations=Math.sqrt(Math.abs(2*Math.sqrt(Math.abs(1-Math.sqrt(5*zoom)))))*66.5;
+ 
+	      inputValue = parseInt(inputField.value);
+	      if (!isNaN(inputValue)) {
+	    	  maxIterations = inputValue;
+	      }
+
+		yspan = 2 / zoom;
+		xspan = 2 * aspect / zoom;
+
+		xmin = xcenter - xspan;
+		xmax = xcenter + xspan;
+		ymin = ycenter - yspan;
+		ymax = ycenter + yspan;
+
+  	  xscale = width / (xmax - xmin);
+  	  yscale = height / (ymax - ymin);
+	  	  
+		// Make Black Image
+		for (i = 0; i < data.length; i += stride) {
+		  data[i + 0] = black[0];
+		  data[i + 1] = black[1];
+		  data[i + 2] = black[2];
+		  data[i + 3] = black[3];
+		}
+
+		// ctx.putImageData(imgData, 0, 0); // Put data in canvas' 2D context
+		for (y = 0; y < height; y += 1) {
+		  for (x = 0; x < width; x += 1) {
+
+
+			  // convert pixel to math number
+			  // 0,0 -> -2,-2
+			  // 500,500 -> 0,0
+			  // 500,0 -> 2,0 -> 0,-2
+			  // 500,250 -> 2,1 -> 0, -1
+			  // 500, 125 -> 2,0.5 -> 0, -1.5
+			  cx = xcenter - xspan + x / xscale;
+			  cy = ycenter - yspan + y / yscale;
+				// image is flipped vertically. numbers go up, pixels go down 
+			zx = 0;
+			zy = 0;
+
+		    inSet = true;
+		    for(i = 1; i <= maxIterations; i += 1){
+		      zxtemp = zx * zx - zy * zy + cx;
+		      zy = 2 * zx * zy + cy;
+			  zx = zxtemp;
+		      if(zx * zx + zy * zy > 4){
+		        inSet = false;
+		        break;
+		      }
+		    }
+	
+		    if (inSet === false) {
+		      pos = y * width * stride + x * stride;
+		      rgb = hslToRgb((i%255)/255, 1, 0.5);
+			  data[pos + 0] = rgb[0];
+			  data[pos + 1] = rgb[1];
+			  data[pos + 2] = rgb[2];
+			  // data[pos + 3] = chosenColor[3] * i / maxIterations; // don't mess with opacity
+		    }
+		  }
+    
+		}
+
+		ctx.putImageData(imgData, 0, 0); 
+
+	  	infoPara.innerHTML = "x: "+xcenter+", y: "+ycenter+", zoom: "+zoom+", maxIterations: "+maxIterations+"<br>";
+		
+		// consolePara.innerHTML = currentURL(); // URL
+	}
+	
+	
+	// Begin main
+	drawMandelbrot();
+	
+	// Event Listeners
+	canvas.addEventListener("mousedown", function(e) {
+		var rect;
+		var xPixel;
+		var yPixel;
+
+		if (e.which === 1){
+			rect = e.currentTarget.getBoundingClientRect();
+			xPixel = e.clientX - rect.left;
+			yPixel = e.clientY - rect.top;
+			xcenter = xmin + xPixel / xscale;
+			ycenter = ymin + yPixel / yscale;
+			zoom *= 2; 
+  
+		} else if (e.which === 3){ // right click is 3 for some reason.
+			zoom /= 2;
+		}
+		
+   	 var url = document.location.href
+   	 if (url.indexOf("?") !== -1){
+   	 	url = url.slice(0, url.indexOf("?"))
+   	 }
+   	 window.location.href = url+"?x="+xcenter+"&y="+ycenter+"&zoom="+zoom+"&maxIterations="+maxIterations;
+
+		// drawMandelbrot();
+ 	},false);
+	
+	canvas.addEventListener("contextmenu", function(event) { 		event.preventDefault(); 
+	} ); 
+	
+	resetButton.addEventListener("click", function(){
+		// Defaults
+		// width = 1000;
+		// height = 1000;
+		xcenter = 0;
+		ycenter = 0;
+		zoom = 1;
+		maxIterations = 255;
+		drawMandelbrot();
+	  	  
+	},false);
+	drawButton.addEventListener("click",drawMandelbrot,false);
+	inputField.addEventListener("keypress", function (e) {
+		// http://stackoverflow.com/questions/14542062/eventlistener-enter-key
+	    var key = e.which || e.keyCode;
+	    if (key === 13) { // 13 is enter
+			drawMandelbrot();
+	    }
+	});
+	
+	// canvas.addEventListener("contextmenu", (event) => event.preventDefault());  	// Block Context Menu on canvas - http://stackoverflow.com/questions/737022/how-do-i-disable-right-click-on-my-web-page
+	
+
+	
+	return node;
+	
+}
+
+// makeMandelbrot({width:1000,height:1000});
+
+// makeMandelbrot({width:1000, height:1000, x: -0.10932031249999986, y: -0.8950119628906247, zoom: 4096, maxIterations: 495});
+
+//m = makeMandelbrot({width: 500, height: 500, x: -0.10931872558593737, y: -0.8950297107696531, zoom: 524288, maxIterations: 635});
+// document.body.appendChild(m);
+
+document.body.appendChild(makeMandelbrot({width: window.innerWidth, height: window.innerHeight}));
+
+  </script>
+</html>
