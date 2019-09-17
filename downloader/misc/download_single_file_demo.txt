@@ -1,0 +1,61 @@
+package main
+
+import (
+//    "fmt"
+    "net/http"
+    "errors"
+    "io"
+    "bytes"
+	"io/ioutil"
+	"log"
+	"path/filepath"
+)
+
+
+func main(){
+
+    downloadFileAndWrite("https://upload.wikimedia.org/wikipedia/commons/6/6c/Abhar-iran.JPG")
+
+}
+
+func downloadFileAndWrite(URL string) ([]byte, error) {
+	response, err := http.Get(URL)
+	if err != nil {
+		return nil, err
+	}
+        defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		return nil, errors.New(response.Status)
+	}
+	var data bytes.Buffer
+	_, err = io.Copy(&data, response.Body)
+	if err != nil {
+		return nil, err
+	}
+//    fmt.Println(data)
+	file := filepath.Base(URL)
+
+	err = ioutil.WriteFile(file, data.Bytes(), 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return data.Bytes(), nil
+}
+
+func downloadFile(URL string) ([]byte, error) {
+	response, err := http.Get(URL)
+	if err != nil {
+		return nil, err
+	}
+        defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		return nil, errors.New(response.Status)
+	}
+	var data bytes.Buffer
+	_, err = io.Copy(&data, response.Body)
+	if err != nil {
+		return nil, err
+	}
+	return data.Bytes(), nil
+}
+
