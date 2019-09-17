@@ -1,5 +1,7 @@
 Concurrently download a bunch of files
 
+Run demo with "go run downloader.go".  It will download a bunch of bear images.
+
 based on https://medium.com/@dhanushgopinath/concurrent-http-downloads-using-go-32fecfa1ed27
 
 
