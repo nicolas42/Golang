@@ -15,7 +15,7 @@ const (
 )
 
 // Copy copies src to dest, doesn't matter if src is a directory or a file
-func Dir(src, dest string) error {
+func Copy(src, dest string) error {
 	info, err := os.Lstat(src)
 	if err != nil {
 		return err
