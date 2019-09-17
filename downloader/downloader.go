@@ -1,24 +1,49 @@
+// cd $(dirname $0)
+// go run downloader.go
+// go run downloader.go
+
 package main
 
 import (
-	//    "fmt"
+	"bufio"
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"path/filepath"
-
-	// readlines
-	"bufio"
 	"os"
+	"path/filepath"
+	// readlines
 )
 
-const inputFile = "urls.txt"
-const outputDir = "output"
+func usage() {
+	print(`
+Concurrently download a bunch of files
+Usage:
+	go run downloader.go [urls-file] [output-dir]
+
+The urls file and the output directory are optional parameters which default to
+"urls" and "output" respectively.
+
+
+`)
+}
+
+var inputFile = "urls"
+var outputDir = "output"
 
 func main() {
+
+	usage()
+
+	if len(os.Args) >= 2 {
+		inputFile = os.Args[1]
+	}
+	if len(os.Args) >= 3 {
+		outputDir = os.Args[2]
+	}
 
 	// Make images dir
 	if _, err := os.Stat(outputDir); os.IsNotExist(err) {
@@ -32,7 +57,7 @@ func main() {
 	}
 
 	// Download the files
-	println("Downloading...")
+	fmt.Printf("Downloading to %s directory...", outputDir)
 	downloadMultipleFiles(urls)
 }
 
@@ -82,7 +107,7 @@ func downloadFileAndWrite(URL string) ([]byte, error) {
 	}
 	//    fmt.Println(data)
 	filename := filepath.Join(outputDir, filepath.Base(URL))
-	err = ioutil.WriteFile(filename[:min(100, len(filename))], data.Bytes(), 0644)
+	err = ioutil.WriteFile(filename[0:min(100, len(filename))], data.Bytes(), 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
