@@ -1,24 +1,19 @@
 package main
 
-import (
-	"fmt"
-)
-
 func main() {
-	fmt.Println("Hello, playground")
+	// fmt.Println("Hello, playground")
 
 	var x, y uint32
 	var xmin, xmax, ymin, ymax float64
 	var xscale, yscale, zx, zy, cx, cy, zxtemp float64
 	var i uint32
 	var isInSet bool
+	var pos uint32
 
 	const WIDTH = 100 // pixels
 	const HEIGHT = 100
-
-	// int data_length = 4 * WIDTH * HEIGHT;
-	// char data[data_length];
-	// // char* data = malloc(data_length);
+	const STRIDE = 4
+	const IMAX = 40
 
 	xmin = -2
 	xmax = 2
@@ -28,12 +23,12 @@ func main() {
 	xscale = WIDTH / (xmax - xmin)
 	yscale = HEIGHT / (ymax - ymin)
 
-	const STRIDE = 3
-	const IMAX = 40
-
-	// black := [4]uint8{0, 0, 0, 255}
-	// white := [4]uint8{255, 255, 255, 255}
+	black := [4]uint8{0, 0, 0, 255}
+	white := [4]uint8{255, 255, 255, 255}
 	// color := [4]uint8{255, 255, 255, 255}
+
+	const data_length = STRIDE * WIDTH * HEIGHT
+	data := [data_length]uint8{}
 
 	// char* filename = "mandelbrot.ppm";
 
@@ -63,20 +58,23 @@ func main() {
 				}
 			}
 
+			pos = (y*WIDTH + x) * STRIDE
 			if isInSet {
-				// (void) fwrite(black, 1, 3, fp);
+				data[pos+0] = black[0]
+				data[pos+1] = black[1]
+				data[pos+2] = black[2]
+				data[pos+3] = 255
 				print("*")
 
 			} else {
-				// fputc(white[0] * i / IMAX, fp);
-				// fputc(white[1] * i / IMAX, fp);
-				// fputc(white[2] * i / IMAX, fp);
-				// fputc(white[3] * i / IMAX, fp);
+				data[pos+0] = uint8(uint32(white[0]) * i / IMAX)
+				data[pos+1] = uint8(uint32(white[1]) * i / IMAX)
+				data[pos+2] = uint8(uint32(white[2]) * i / IMAX)
+				data[pos+3] = 255
 				print(" ")
 			}
 		}
 		print("\n")
 	}
 
-	return
 }
