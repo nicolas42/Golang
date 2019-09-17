@@ -1,51 +1,11 @@
-package main
+package mandelbrot
 
 import (
-	"bytes"
 	"image"
 	"image/color"
-	"image/png"
-	"log"
-	"os"
 )
 
-func main() {
-
-	img := drawMandelbrot(1000, 1000)
-
-	var buffer bytes.Buffer
-	png.Encode(&buffer, img)
-
-	f, err := os.Create("image.png")
-	defer f.Close()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	f.Write(buffer.Bytes())
-
-}
-
-func testOsCreate() {
-	img := drawMandelbrot(1000, 1000)
-
-	f, err := os.Create("image.png")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err := png.Encode(f, img); err != nil {
-		f.Close()
-		log.Fatal(err)
-	}
-
-	if err := f.Close(); err != nil {
-		log.Fatal(err)
-	}
-}
-
-func drawMandelbrot(width int, height int) image.Image {
+func Draw(width int, height int) image.Image {
 	var x, y int
 	var xmin, xmax, ymin, ymax float64
 	var xscale, yscale, zx, zy, cx, cy, zxtemp float64
@@ -120,3 +80,39 @@ func drawMandelbrot(width int, height int) image.Image {
 	}
 	return img
 }
+
+// func main() {
+
+// 	img := drawMandelbrot(1000, 1000)
+
+// 	var buffer bytes.Buffer
+// 	png.Encode(&buffer, img)
+
+// 	f, err := os.Create("image.png")
+// 	defer f.Close()
+
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+
+// 	f.Write(buffer.Bytes())
+
+// }
+
+// func testOsCreate() {
+// 	img := drawMandelbrot(1000, 1000)
+
+// 	f, err := os.Create("image.png")
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+
+// 	if err := png.Encode(f, img); err != nil {
+// 		f.Close()
+// 		log.Fatal(err)
+// 	}
+
+// 	if err := f.Close(); err != nil {
+// 		log.Fatal(err)
+// 	}
+// }
