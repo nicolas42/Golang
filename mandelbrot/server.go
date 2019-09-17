@@ -2,47 +2,34 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"image"
 	"image/color"
 	"image/png"
+	"io"
 	"log"
-	"os"
+	"net/http"
 )
 
+func handler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
+}
+
 func main() {
+	http.HandleFunc("/", webHandler)
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+func webHandler(w http.ResponseWriter, r *http.Request) {
+	// https://stackoverflow.com/questions/26744814/serve-image-in-go-that-was-just-created
 
 	img := drawMandelbrot(1000, 1000)
 
 	var buffer bytes.Buffer
 	png.Encode(&buffer, img)
 
-	f, err := os.Create("image.png")
-	defer f.Close()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	f.Write(buffer.Bytes())
-
-}
-
-func testOsCreate() {
-	img := drawMandelbrot(1000, 1000)
-
-	f, err := os.Create("image.png")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err := png.Encode(f, img); err != nil {
-		f.Close()
-		log.Fatal(err)
-	}
-
-	if err := f.Close(); err != nil {
-		log.Fatal(err)
-	}
+	w.Header().Set("Content-Type", "image/jpeg") // <-- set the content-type header
+	io.Copy(w, &buffer)
 }
 
 func drawMandelbrot(width int, height int) image.Image {
