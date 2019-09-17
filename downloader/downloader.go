@@ -1,39 +1,39 @@
 package main
 
 import (
-//    "fmt"
-    "net/http"
-    "errors"
-    "io"
-    "bytes"
+	//    "fmt"
+	"bytes"
+	"errors"
+	"io"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"path/filepath"
 
-    // readlines
-    "bufio"
-    "os"
+	// readlines
+	"bufio"
+	"os"
 )
 
 const inputFile = "urls.txt"
 const outputDir = "output"
 
-func main(){
+func main() {
 
-    // Make images dir
-    if _, err := os.Stat(outputDir); os.IsNotExist(err) {
-        os.Mkdir(outputDir, 0777)
-    }
+	// Make images dir
+	if _, err := os.Stat(outputDir); os.IsNotExist(err) {
+		os.Mkdir(outputDir, 0777)
+	}
 
-    // Read the urls
-    urls, err := readLines(inputFile)
-    if err != nil {
-        log.Fatalf("readLines: %s", err)
-    }
+	// Read the urls
+	urls, err := readLines(inputFile)
+	if err != nil {
+		log.Fatalf("readLines: %s", err)
+	}
 
-    // Download the files
-    println("Downloading...")
-    downloadMultipleFiles(urls)
+	// Download the files
+	println("Downloading...")
+	downloadMultipleFiles(urls)
 }
 
 func downloadMultipleFiles(urls []string) ([][]byte, error) {
@@ -60,7 +60,7 @@ func downloadMultipleFiles(urls []string) ([][]byte, error) {
 		}
 	}
 	var err error
-	if errStr!=""{
+	if errStr != "" {
 		err = errors.New(errStr)
 	}
 	return bytesArray, err
@@ -71,7 +71,7 @@ func downloadFileAndWrite(URL string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-        defer response.Body.Close()
+	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK {
 		return nil, errors.New(response.Status)
 	}
@@ -80,31 +80,30 @@ func downloadFileAndWrite(URL string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-//    fmt.Println(data)
-	file := filepath.Join(outputDir, filepath.Base(URL))
-	err = ioutil.WriteFile(file[:min(100, len(file))], data.Bytes(), 0644)
+	//    fmt.Println(data)
+	filename := filepath.Join(outputDir, filepath.Base(URL))
+	err = ioutil.WriteFile(filename[:min(100, len(filename))], data.Bytes(), 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
 	return data.Bytes(), nil
 }
 
-
 // readLines reads a whole file into memory
 // and returns a slice of its lines.
 func readLines(path string) ([]string, error) {
-    file, err := os.Open(path)
-    if err != nil {
-        return nil, err
-    }
-    defer file.Close()
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
 
-    var lines []string
-    scanner := bufio.NewScanner(file)
-    for scanner.Scan() {
-        lines = append(lines, scanner.Text())
-    }
-    return lines, scanner.Err()
+	var lines []string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	return lines, scanner.Err()
 }
 
 func min(a, b int) int {
@@ -113,5 +112,3 @@ func min(a, b int) int {
 	}
 	return b
 }
-
-

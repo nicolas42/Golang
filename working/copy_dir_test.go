@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	copy.Copy("test", "test.copy")
+	copy.Dir("test", "test.copy")
 }
