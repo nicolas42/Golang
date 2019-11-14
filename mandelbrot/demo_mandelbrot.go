@@ -24,6 +24,8 @@ func main() {
 	}
 
 	f.Write(buffer.Bytes())
+	f.Close()
+	println("Wrote mandelbrot image to image.png");
 
 }
 
