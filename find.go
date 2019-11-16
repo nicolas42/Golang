@@ -20,7 +20,7 @@ func visit(path string, f os.FileInfo, err error) error {
 		}
 	}
 	if containsAll {
-		fmt.Println(path)
+		fmt.Println(f.Name())
 		clipboard.WriteAll(path)
 	}
 
