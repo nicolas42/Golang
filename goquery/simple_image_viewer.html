@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+<img id="theimage" width="100%" height="100%"/>
+</body>
+
+<script>
+
+var images_index = 0;
+var images = [];
+
+function myFunction() {
+    var key = event.which;                
+    switch(key) {
+      case 37:
+          // Key left.
+            --images_index;
+            if (images_index < 0){
+                images_index = images.length-1;
+            }
+            console.log(images_index);
+            document.getElementById("theimage").src=images[images_index];
+          break;
+//    case 38: // Key up. // break;
+      case 39:
+          // Key right.
+          ++images_index;
+          if (images_index > (images.length-1)){
+                images_index = 0;
+            }
+
+          document.getElementById("theimage").src=images[images_index];
+            console.log('39');
+
+          break;
+//     case 40: // Key down. // break;
+    }
+}
+
+window.addEventListener("keydown", myFunction);
+
+document.getElementById("theimage").src=images[images_index];
+
+</script>
+
+</html>
+
+
+
