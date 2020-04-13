@@ -1,0 +1,41 @@
+package main
+
+import "fmt"
+import "math"
+
+type pair struct {
+	x float64
+	y float64
+}
+
+func main() {
+	fmt.Printf("13 inch 16:10 screen: \t%.1f inches of height\n", screen16by10(13).y)
+	fmt.Printf("12.5 inch 16:9 screen: \t%.1f inches of height\n", screen16by9(12.5).y)
+	fmt.Printf("12.5 inch 16:9 screen: \t%.1f inches of height\n", screen16by9(12.5).y)
+	fmt.Printf("10 inch 3:4 screen: \t%.1f inches of height\n", screen4by3(10).y)
+	fmt.Println("So, the macbook pro provides ~7inches of browsing height, lenovo x250 ~6 inches, ipad ~8 inches")
+	
+	fmt.Println("Additionally, an inch or so can be removed for both top and bottom menu bars")
+
+}
+
+func screen16by10(diag float64) pair {
+	x := math.Sqrt(diag*diag/356)
+	return pair{16*x, 10*x}
+}
+
+func screen16by9(diag float64) pair {
+	x := math.Sqrt(diag*diag/337)
+	return pair{16*x, 9*x}
+}
+
+func screen4by3(diag float64) pair {
+	x := math.Sqrt(diag*diag/25)
+	return pair{y:4*x, x:3*x}
+}
+
+
+func (p pair) String() string {
+	return fmt.Sprintf("%.0fx%.0f inches", p.x, p.y)
+}
+
