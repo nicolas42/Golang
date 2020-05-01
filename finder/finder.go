@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/atotto/clipboard"
+//	"github.com/atotto/clipboard"
 )
 
 func visit(path string, f os.FileInfo, err error) error {
@@ -20,8 +20,9 @@ func visit(path string, f os.FileInfo, err error) error {
 		}
 	}
 	if containsAll {
-		fmt.Println(f.Name())
-		clipboard.WriteAll(path)
+		fmt.Println(path)
+		// fmt.Println(f.Name())		
+//		clipboard.WriteAll(path)
 	}
 
 	return nil
