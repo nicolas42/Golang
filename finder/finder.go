@@ -1,3 +1,7 @@
+// Usage:
+// finder some words here
+// case insensitive
+
 package main
 
 import (
@@ -33,16 +37,18 @@ var searchTerms []string
 
 func main() {
 
-	if len(os.Args) < 3 {
-		fmt.Printf("usage: %s [dir] [search terms]\r\n", os.Args[0])
+	if len(os.Args) < 2 {
+		fmt.Printf("usage: %s [search terms]\r\n", os.Args[0])
 		return
 	}
 
-	root = os.Args[1]
-	for i := 2; i < len(os.Args); i++ {
+	root,_ = os.Getwd(); // os.Args[1]
+
+	for i := 1; i < len(os.Args); i++ {
 		searchTerms = append(searchTerms, os.Args[i])
 	}
 
 	filepath.Walk(root, visit)
 
 }
+
